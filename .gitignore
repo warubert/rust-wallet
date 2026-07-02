@@ -1,0 +1,25 @@
+# Ignora pastas target de todos os projetos
+**/target/
+
+# Ignora arquivos de backup
+**/*.rs.bk
+**/Cargo.toml.bk
+
+# Ignora Cargo.lock apenas em bibliotecas (remova se for binário)
+**/Cargo.lock
+
+# IDEs e editores
+**/.idea/
+**/.vscode/
+*.swp
+*.swo
+
+# Logs, dumps, arquivos temporários
+*.log
+*.dmp
+.DS_Store
+Thumbs.db
+
+# Cobertura e benchmarking
+**/coverage/
+**/*.lcov
