@@ -1,4 +1,4 @@
-use axum::{Json, Router, extract::State, routing::get};
+use axum::Router;
 use tokio::{net::TcpListener, sync::Mutex};
 use std::sync::Arc;
 use tracing::info;
@@ -7,6 +7,7 @@ use tracing_subscriber::{
 };
 
 use crate::models::Asset;
+use crate::routes;
 
 #[derive(Clone)]
 pub struct AppState {
@@ -35,7 +36,7 @@ impl App {
 
         let listener = TcpListener::bind("0.0.0.0:3000").await?;
         let router = Router::new()
-            .route("/", get(list_assets).post(create_asset))
+            .nest("/api", routes::api::router())
             .with_state(AppState::new());
 
         info!("Server started at http://localhost:3000");
@@ -44,15 +45,4 @@ impl App {
 
         Ok(())
     }
-}
-
-#[tracing::instrument(skip_all)]
-async fn list_assets(state: State<AppState>) -> Json<Vec<Asset>> {
-    let assets = state.assets.lock().await;
-    Json(assets.clone())
-}
-
-#[tracing::instrument(skip_all)]
-async fn create_asset(state: State<AppState>) -> Json<Asset> {
-    todo!("Implement asset creation logic");
 }

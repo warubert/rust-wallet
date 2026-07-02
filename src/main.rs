@@ -2,6 +2,7 @@ use crate::app::App;
 
 mod app;
 pub mod models;
+pub mod routes;
 
 // gera um contexto async dentro da main de forma automatica, sem precisar criar uma runtime manualmente
 #[tokio::main]
