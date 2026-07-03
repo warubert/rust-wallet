@@ -1,6 +1,7 @@
 use axum::Router;
 use tokio::{net::TcpListener, sync::Mutex};
 use std::sync::Arc;
+use std::collections::HashMap;
 use tracing::info;
 use tracing_subscriber::{
     Layer, fmt::format::FmtSpan, layer::SubscriberExt, util::SubscriberInitExt
@@ -13,7 +14,7 @@ use crate::routes;
 pub struct AppState {
     // para compartilhar o mesmo estado(ref para o mesmo vetor) entre as rotas
     // mutex -> acesso unico mutavel
-    pub assets: Arc<Mutex<Vec<Asset>>>
+    pub assets: Arc<Mutex<HashMap<i64, Asset>>>
 }
 
 impl AppState {

@@ -3,6 +3,8 @@ use crate::app::App;
 mod app;
 pub mod models;
 pub mod routes;
+pub mod auth;
+pub mod error;
 
 // gera um contexto async dentro da main de forma automatica, sem precisar criar uma runtime manualmente
 #[tokio::main]
