@@ -1,27 +1,30 @@
 use axum::Router;
-use tokio::{net::TcpListener, sync::Mutex};
-use std::sync::Arc;
-use std::collections::HashMap;
+use sqlx::PgPool;
+use tokio::net::TcpListener;
 use tracing::info;
 use tracing_subscriber::{
     Layer, fmt::format::FmtSpan, layer::SubscriberExt, util::SubscriberInitExt
 };
 
-use crate::models::Asset;
 use crate::routes;
 
 #[derive(Clone)]
 pub struct AppState {
     // para compartilhar o mesmo estado(ref para o mesmo vetor) entre as rotas
     // mutex -> acesso unico mutavel
-    pub assets: Arc<Mutex<HashMap<i64, Asset>>>
+    // pub assets: Arc<Mutex<HashMap<i64, Asset>>>,
+    pub db: PgPool,
 }
 
 impl AppState {
-    fn new() -> Self {
-        Self {
-            assets: Default::default()
-        }
+    async fn new() -> color_eyre::Result<Self> {
+        let database_url = std::env::var("DATABASE_URL")?;
+        let db = PgPool::connect(&database_url).await?;
+
+        Ok(Self {
+            // assets: Default::default(),
+            db
+        })
     }
 }
 
@@ -35,10 +38,13 @@ impl App {
             .boxed();
         tracing_subscriber::registry().with(layer).init();
 
+        dotenvy::dotenv()?;
+        let state = AppState::new().await?;
+
         let listener = TcpListener::bind("0.0.0.0:3000").await?;
         let router = Router::new()
             .nest("/api", routes::api::router())
-            .with_state(AppState::new());
+            .with_state(state);
 
         info!("Server started at http://localhost:3000");
 
