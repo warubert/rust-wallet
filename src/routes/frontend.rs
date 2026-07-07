@@ -1,15 +1,19 @@
 use askama::Template;
-use axum::Form;
-use axum::{Router, response::Html, routing::get};
+use axum::{
+    Form, Router, response::{Html, IntoResponse, Redirect, Response}, routing::get
+};
+use axum_extra::extract::{ CookieJar, cookie::Cookie};
 use serde::Deserialize;
 
 use crate::app::AppState;
-use crate::auth::user::UnauthenticatedUser;
+use crate::auth::user::{UnauthenticatedUser, User};
 use crate::error::AppError;
 use crate::repository::Repository;
 
 pub fn router() -> Router<AppState> {
-    Router::new().route("/login", get(login_page).post(login))
+    Router::new()
+        .route("/", get(index))
+        .route("/login", get(login_page).post(login))
 }
 
 #[derive(Template)]
@@ -27,7 +31,11 @@ struct LoginForm {
     password: String,
 }
 
-async fn login(repository: Repository, Form(request): Form<LoginForm>) -> Result<Html<String>, AppError> {
+async fn login(
+    repository: Repository,
+    jar: CookieJar,
+    Form(request): Form<LoginForm>
+) -> Result<impl IntoResponse, AppError> {
     let unauth_user = UnauthenticatedUser::new(request.username, request.password);
 
     let user = match unauth_user.authenticate(&repository).await {
@@ -36,5 +44,15 @@ async fn login(repository: Repository, Form(request): Form<LoginForm>) -> Result
         Err(err) => return Err(err),
     };
 
-    Ok(Html(user.username().clone()))
+    let token = user.auth_token()?;
+    let cookie = Cookie::build(("token", token)).http_only(true);
+
+    Ok((jar.add(cookie), Redirect::to("/")))
+}
+
+async fn index(maybe_user: Option<User>) -> Result<Response, AppError> {
+    match maybe_user {
+        Some(user) => Ok(Html(format!("Hello, {}!", user.username())).into_response()),
+        None => Ok(Redirect::to("/login").into_response()),
+    }
 }
