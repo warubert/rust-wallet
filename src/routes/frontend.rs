@@ -1,6 +1,6 @@
 use askama::Template;
 use axum::{
-    Form, Router, response::{Html, IntoResponse, Redirect }, routing::get
+    Form, Router, response::{Html, IntoResponse, Redirect }, routing::{get, post}
 };
 use axum_extra::extract::{ CookieJar, cookie::Cookie};
 use serde::Deserialize;
@@ -17,6 +17,8 @@ pub fn router() -> Router<AppState> {
         .route("/login", get(login_page).post(login))
         .route("/logout", get(logout))
         .route("/assets", get(assets).post(purchase_asset))
+        .route("/assets/new", post(create_asset))
+        .route("/assets/edit", post(edit_asset))
 }
 
 #[derive(Template)]
@@ -112,6 +114,39 @@ pub async fn purchase_asset(
         )
         .await?;
 
+    Ok(Redirect::to("/assets"))
+}
+
+#[derive(Deserialize)]
+pub struct CreateAssetForm {
+    name: String,
+    unit_value: f64,
+}
+
+pub async fn create_asset(
+    repository: Repository,
+    _: User,
+    Form(request): Form<CreateAssetForm>,
+) -> Result<Redirect, AppError> {
+    repository.create_asset(request.name, request.unit_value).await?;
+    Ok(Redirect::to("/assets"))
+}
+
+#[derive(Deserialize)]
+pub struct EditAssetForm {
+    asset_id: i64,
+    name: Option<String>,
+    unit_value: Option<f64>,
+}
+
+pub async fn edit_asset(
+    repository: Repository,
+    _: User,
+    Form(request): Form<EditAssetForm>,
+) -> Result<Redirect, AppError> {
+    repository
+        .update_asset(request.asset_id, request.name, request.unit_value)
+        .await?;
     Ok(Redirect::to("/assets"))
 }
 
