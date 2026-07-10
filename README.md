@@ -1,6 +1,7 @@
 # 💰 Rust Wallet
 
 Uma aplicação web de carteira digital construída em Rust, permitindo que usuários gerenciem seus ativos financeiros — comprem, acompanhem e visualizem a variação de valor dos seus investimentos.
+Construido para o bootcamp Santander 2026 - Rust AI Developer
 
 ---
 
@@ -28,12 +29,14 @@ A **Rust Wallet** é uma aplicação full-stack que permite:
 ### Passo a passo
 
 **1. Clone o repositório**
+
 ```bash
 git clone https://github.com/warubert/rust-wallet.git
 cd rust-wallet
 ```
 
 **2. Suba o banco de dados**
+
 ```bash
 docker compose up -d
 ```
@@ -41,16 +44,19 @@ docker compose up -d
 **3. Configure as variáveis de ambiente**
 
 Crie um arquivo `.env` na raiz do projeto:
+
 ```env
 DATABASE_URL=postgres://postgres:postgres@localhost:5432/postgres
 ```
 
 **4. Execute as migrations**
+
 ```bash
 sqlx migrate run
 ```
 
 **5. Inicie a aplicação**
+
 ```bash
 cargo run
 ```
@@ -61,20 +67,20 @@ A aplicação estará disponível em: **http://localhost:3000**
 
 ## 🛠️ Tecnologias utilizadas
 
-| Tecnologia | Uso |
-|---|---|
-| **Rust** | Linguagem principal |
-| **Axum** | Framework web assíncrono |
-| **Tokio** | Runtime assíncrono |
-| **SQLx** | Acesso ao banco com queries verificadas em tempo de compilação |
-| **PostgreSQL** | Banco de dados relacional |
-| **Askama** | Renderização de templates HTML |
-| **JWT Simple** | Autenticação via JSON Web Tokens |
-| **password-auth** | Hash seguro de senhas |
-| **axum-extra** | Suporte a cookies assinados |
-| **Docker** | Containerização do banco de dados |
-| **Insta** | Snapshot testing |
-| **tracing** | Logging e instrumentação |
+| Tecnologia        | Uso                                                            |
+| ----------------- | -------------------------------------------------------------- |
+| **Rust**          | Linguagem principal                                            |
+| **Axum**          | Framework web assíncrono                                       |
+| **Tokio**         | Runtime assíncrono                                             |
+| **SQLx**          | Acesso ao banco com queries verificadas em tempo de compilação |
+| **PostgreSQL**    | Banco de dados relacional                                      |
+| **Askama**        | Renderização de templates HTML                                 |
+| **JWT Simple**    | Autenticação via JSON Web Tokens                               |
+| **password-auth** | Hash seguro de senhas                                          |
+| **axum-extra**    | Suporte a cookies assinados                                    |
+| **Docker**        | Containerização do banco de dados                              |
+| **Insta**         | Snapshot testing                                               |
+| **tracing**       | Logging e instrumentação                                       |
 
 ---
 
@@ -91,16 +97,19 @@ Em vez de redirecionar o usuário para páginas separadas, as ações de criar u
 Os testes utilizam **`sqlx::test`** (banco isolado por teste) e **Insta** para snapshot testing.
 
 **Executar todos os testes:**
+
 ```bash
 cargo test
 ```
 
 **Revisar ou atualizar snapshots:**
+
 ```bash
 cargo insta review
 ```
 
 Os testes cobrem:
+
 - `test_create_asset` — criação de um ativo via handler
 - `test_list_assets` — listagem de ativos com fixture
 - `test_update_asset` — atualização de nome e valor de ativo
