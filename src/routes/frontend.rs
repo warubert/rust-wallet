@@ -7,6 +7,7 @@ use serde::Deserialize;
 use tokio::try_join;
 
 use crate::{app::AppState, models::{Asset, OwnedAsset}};
+use crate::auth::admin::Admin;
 use crate::auth::user::{UnauthenticatedUser, User};
 use crate::error::AppError;
 use crate::repository::Repository;
@@ -72,6 +73,7 @@ pub struct AssetsPage {
     owned_assets: Vec<OwnedAsset>,
     available_assets: Vec<Asset>,
     user: User,
+    is_admin: bool,
 }
 
 pub async fn assets(
@@ -83,9 +85,11 @@ pub async fn assets(
         repository.list_assets()
     )?;
 
+    let is_admin = user.is_admin();
     let html = AssetsPage {
         owned_assets,
         available_assets,
+        is_admin,
         user,
     }
     .render()?;
@@ -125,7 +129,7 @@ pub struct CreateAssetForm {
 
 pub async fn create_asset(
     repository: Repository,
-    _: User,
+    _: Admin,
     Form(request): Form<CreateAssetForm>,
 ) -> Result<Redirect, AppError> {
     repository.create_asset(request.name, request.unit_value).await?;
@@ -141,7 +145,7 @@ pub struct EditAssetForm {
 
 pub async fn edit_asset(
     repository: Repository,
-    _: User,
+    _: Admin,
     Form(request): Form<EditAssetForm>,
 ) -> Result<Redirect, AppError> {
     repository

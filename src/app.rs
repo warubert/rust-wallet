@@ -6,6 +6,7 @@ use tracing_subscriber::{
     Layer, fmt::format::FmtSpan, layer::SubscriberExt, util::SubscriberInitExt
 };
 
+use crate::repository::Repository;
 use crate::routes;
 
 #[derive(Clone)]
@@ -21,8 +22,9 @@ impl AppState {
         let database_url = std::env::var("DATABASE_URL")?;
         let db = PgPool::connect(&database_url).await?;
 
+        Repository::from(db.clone()).seed_admin().await?;
+
         Ok(Self {
-            // assets: Default::default(),
             db
         })
     }

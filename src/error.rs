@@ -9,6 +9,8 @@ pub enum AppError {
     MissingAuthorization,
     #[error("Invalid Credentials")]
     InvalidCredentials,
+    #[error("Forbidden")]
+    Forbidden,
     #[error("Asset not found")]
     AssetNotFound,
     #[error("User does not exist")]
@@ -37,6 +39,7 @@ impl IntoResponse for AppError {
         let status_code = match self {
             Self::MissingAuthorization => StatusCode::BAD_REQUEST,
             Self::InvalidCredentials => StatusCode::UNAUTHORIZED,
+            Self::Forbidden => StatusCode::FORBIDDEN,
             Self::AssetNotFound =>  StatusCode::NOT_FOUND,
             Self::UserNameTaken => StatusCode::CONFLICT,
             Self::Database(_) => StatusCode::INTERNAL_SERVER_ERROR,

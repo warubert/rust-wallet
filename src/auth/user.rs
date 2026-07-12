@@ -32,7 +32,7 @@ impl UnauthenticatedUser {
         };
 
         match password_auth::verify_password(&self.password, &user_record.password_hash) {
-            Ok(()) => Ok(User::new(user_record.id, user_record.username)),
+            Ok(()) => Ok(User::new(user_record.id, user_record.username, user_record.role)),
             Err(VerifyError::PasswordInvalid) => Err(AppError::InvalidCredentials),
             Err(VerifyError::Parse(err)) => panic!("Hashing algorithm failed: {err}")
         }
@@ -40,7 +40,7 @@ impl UnauthenticatedUser {
     
     pub async fn register(self, repository: &Repository) -> Result<User, AppError> {
         let password_hash = password_auth::generate_hash(self.password);
-        let user_record  = match repository.add_user(&self.username, &password_hash).await {
+        let user_record  = match repository.add_user(&self.username, &password_hash, "user").await {
             Ok(user_record) => user_record,
             Err(sqlx::Error::Database(db_err)) if db_err.is_unique_violation() => {
                 return Err(AppError::UserNameTaken);
@@ -48,18 +48,19 @@ impl UnauthenticatedUser {
             Err(err) => return Err(AppError::Database(err)),
         };
 
-        Ok(User::new(user_record.id, user_record.username))
+        Ok(User::new(user_record.id, user_record.username, user_record.role))
     }
 }
 
 pub struct User {
     id: i64,
     username: String,
+    role: String,
 }
 
 impl User {
-    fn new(id: i64, username: String) -> Self {
-        Self { id, username }
+    fn new(id: i64, username: String, role: String) -> Self {
+        Self { id, username, role }
     }
 
     pub const fn id(&self) -> i64 {
@@ -68,6 +69,10 @@ impl User {
 
     pub const fn username(&self) -> &String {
         &self.username
+    }
+
+    pub fn is_admin(&self) -> bool {
+        self.role == "admin"
     }
 
     pub fn auth_token(self) -> Result<String, AppError> {
@@ -80,7 +85,7 @@ impl User {
     pub fn from_auth_token(token: &str) -> Result<Self, AppError> {
         let key = HS256Key::from_bytes(SECRET_KEY);
         let claims: UserClaims = key.verify_token(token, None)?.custom;
-        Ok(Self::new(claims.id, claims.username))
+        Ok(Self::new(claims.id, claims.username, claims.role))
     } 
 }
 
@@ -117,13 +122,15 @@ impl FromRequestParts<AppState> for Option<User> {
 struct UserClaims {
     id: i64,
     username: String,
+    role: String,
 }
 
 impl From<User> for UserClaims {
-    fn from(User { id, username }: User) -> Self {
+    fn from(User { id, username, role }: User) -> Self {
         Self {
             id,
             username,
+            role,
         }
     }
 }

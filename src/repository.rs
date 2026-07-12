@@ -42,12 +42,13 @@ impl Repository {
         .await
     }
 
-    pub async fn add_user(&self, username: &str, password_hash: &str) -> sqlx::Result<UserRecord> {
+    pub async fn add_user(&self, username: &str, password_hash: &str, role: &str) -> sqlx::Result<UserRecord> {
         sqlx::query_as!(
             UserRecord,
-            "INSERT INTO users (username, password_hash) VALUES ($1, $2) RETURNING id, username, password_hash;",
+            "INSERT INTO users (username, password_hash, role) VALUES ($1, $2, $3) RETURNING id, username, password_hash, role;",
             username,
-            password_hash
+            password_hash,
+            role,
         )
         .fetch_one(&self.db)
         .await
@@ -56,11 +57,32 @@ impl Repository {
     pub async fn get_user_by_username(&self, username: &str) -> sqlx::Result<Option<UserRecord>> {
         sqlx::query_as!(
             UserRecord,
-            "SELECT id, username, password_hash FROM users WHERE username = $1;",
+            "SELECT id, username, password_hash, role FROM users WHERE username = $1;",
             username
         )
         .fetch_optional(&self.db)
         .await
+    }
+
+    pub async fn seed_admin(&self) -> sqlx::Result<()> {
+        let exists: bool = sqlx::query_scalar!(
+            "SELECT EXISTS(SELECT 1 FROM users WHERE username = 'admin')"
+        )
+        .fetch_one(&self.db)
+        .await?
+        .unwrap_or(false);
+
+        if !exists {
+            let password_hash = password_auth::generate_hash("admin");
+            sqlx::query!(
+                "INSERT INTO users (username, password_hash, role) VALUES ('admin', $1, 'admin');",
+                password_hash
+            )
+            .execute(&self.db)
+            .await?;
+        }
+
+        Ok(())
     }
 
     pub async fn list_owned_assets(&self, user_id: i64) -> sqlx::Result<Vec<OwnedAsset>> {
@@ -129,7 +151,6 @@ impl FromRequestParts<AppState> for Repository {
     }
 }
 
-#[cfg(test)]
 impl From<PgPool> for Repository {
     fn from(db: PgPool) -> Self {
         Self { db }

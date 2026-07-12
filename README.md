@@ -13,7 +13,7 @@ A **Rust Wallet** é uma aplicação full-stack que permite:
 - **Listagem de ativos** disponíveis para compra (ex: Bitcoin, Ethereum)
 - **Compra de ativos** com registro do preço e quantidade no momento da aquisição
 - **Visualização da carteira** com histórico detalhado de compras e cálculo de variação de valor em relação ao preço atual
-- **Gerenciamento de ativos** (criação e edição) por usuários autenticados, com rotas admin protegidas via JWT
+- **Gerenciamento de ativos** (criação e edição) exclusivamente por usuários com role **admin**, com verificação do role no JWT
 - **API REST** para integração externa com os ativos cadastrados
 
 ---
@@ -65,6 +65,25 @@ A aplicação estará disponível em: **http://localhost:3000**
 
 ---
 
+## 🔐 Usuário administrador
+
+A aplicação possui um sistema de roles: `user` (padrão) e `admin`.
+
+Somente usuários com role **admin** podem **criar** e **editar** ativos. Para usuários comuns, esses botões aparecem desabilitados na interface.
+
+Um usuário administrador é criado automaticamente na primeira inicialização da aplicação:
+
+| Campo    | Valor   |
+| -------- | ------- |
+| Username | `admin` |
+| Senha    | `admin` |
+
+> ⚠️ Recomenda-se alterar a senha do usuário `admin` em ambientes de produção.
+
+O role do usuário é armazenado no JWT e verificado nos endpoints de criação e edição de ativos — tanto nas rotas da interface web quanto na API REST.
+
+---
+
 ## 🛠️ Tecnologias utilizadas
 
 | Tecnologia        | Uso                                                            |
@@ -84,11 +103,18 @@ A aplicação estará disponível em: **http://localhost:3000**
 
 ---
 
-## ✨ Melhoria implementada
+## ✨ Melhorias implementadas
 
 Foi implementada a **experiência de criação e edição de ativos via modais** na interface web.
 
 Em vez de redirecionar o usuário para páginas separadas, as ações de criar um novo ativo e editar um existente são realizadas diretamente na página `/assets` por meio de janelas modais. Isso torna o fluxo mais fluido e evita recarregamentos desnecessários de página, melhorando a experiência do usuário sem abrir mão da simplicidade do HTML + formulários nativos.
+
+Também foi implementado um **sistema de roles** para controle de acesso:
+
+- Todo usuário criado automaticamente recebe o role `user`, que permite visualizar e comprar ativos, mas não criar ou editá-los.
+- O role `admin` é necessário para criar e editar ativos — tanto pelos endpoints da API REST quanto pela interface web.
+- O role é embutido no JWT no momento do login e verificado nos endpoints protegidos, sem necessidade de consulta adicional ao banco.
+- Na interface, os botões de criação e edição ficam visualmente desabilitados para usuários sem permissão.
 
 ---
 
