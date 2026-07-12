@@ -1,7 +1,7 @@
 # 💰 Rust Wallet
 
 Uma aplicação web de carteira digital construída em Rust, permitindo que usuários gerenciem seus ativos financeiros — comprem, acompanhem e visualizem a variação de valor dos seus investimentos.
-Construido para o bootcamp Santander 2026 - Rust AI Developer
+Construido para o deasfio do bootcamp Santander 2026 - Rust AI Developer
 
 ---
 
